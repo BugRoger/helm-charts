@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monasca-grafana
+#  name: {{ template "fullname" . }}
+  namespace: monasca
+  labels:
+    system: openstack
+    service: monitoring
+#    app: {{ template "fullname" . }}
+#    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+#    release: "{{ .Release.Name }}"
+#    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    component: monasca-grafana
+#    app: {{ template "fullname" . }}
+  ports:
+    - port: {{cluster_config['monasca.grafana.port.public']}}

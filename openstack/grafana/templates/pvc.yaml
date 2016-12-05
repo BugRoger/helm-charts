@@ -1,0 +1,20 @@
+{{- if .Values.persistence.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+#  name: {{ template "fullname" . }}
+  name: monasca-grafana-pvclaim
+  namespace: monasca
+  labels:
+    system: openstack
+    component: monitoring
+
+spec:
+  accessModes:
+    - ReadWriteMany
+#    - {{ .Values.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: 1Gi           # datalogs per day allocate 1-10 Gi storage on staging
+#      storage: {{ .Values.persistence.size | quote }}
+{{- end }}

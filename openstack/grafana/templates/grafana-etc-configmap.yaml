@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-etc
+  labels:
+    system: openstack
+    service: monitoring
+    component: configuration
+
+data:
+  monasca-grafana.ini: |
+{{ .Files.Get "files/monasca-grafana.ini" | indent 4 }}
+
