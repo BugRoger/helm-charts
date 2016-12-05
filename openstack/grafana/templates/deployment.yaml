@@ -1,0 +1,111 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+#  name: {{ template "fullname" . }}
+  name: monasca-grafana
+  namespace: monasca
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    system: openstack
+    service: monitoring
+#  annotations:
+#    kubernetes.io/change-cause: {{cluster_config['cluster.deployment.reason']}}
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+        component: monasca-grafana
+      annotations:
+        checksum/grafana.etc: {{ include "grafana/templates/grafana-etc-configmap.yaml" . | sha256sum }}
+        checksum/monasca.bin: {{ include "grafana/templates/monasca-bin-configmap.yaml" . | sha256sum }}
+    spec:
+      nodeSelector:
+        zone: farm
+      volumes:
+        - name: monasca-grafana-persistent-storage
+          persistentVolumeClaim:
+            claimName: monasca-grafana-pvclaim
+#        - name: openstack-kube
+#          gitRepo:
+#            repository: {{cluster_config['cluster.configuration.repository']}}
+#            revision: {{cluster_config['cluster.configuration.revision']}}
+        - name: monasca-content
+          gitRepo:
+            repository: https://github.wdf.sap.corp/monsoon/monasca-content
+            revision: master
+        - name: monasca-bin
+          configMap:
+            name: monasca-bin
+        - name: grafana-etc
+          configMap:
+            name: grafana-etc
+      containers:
+#      - name: {{ template "fullname" . }}
+#        image: "{{ .Values.image }}"
+#        imagePullPolicy: {{ default "" .Values.imagePullPolicy | quote }}
+      - name: monasca-grafana
+        image: hub.global.cloud.sap/monsoon/monasca-grafana:{{cluster_config['image.version.monasca.grafana']}}
+        imagePullPolicy: Always
+        command:
+          - /openstack-kube/openstack-kube/scripts/_container_init
+        args:
+          - grafana-start
+#          command:
+#            - /bin/bash
+#          args:
+#            - -c
+#            - "while true; do sleep 1000; done"
+#          env:
+#          - name: REDIS_PASSWORD
+#            valueFrom:
+#              secretKeyRef:
+#                name: {{ template "fullname" . }}
+#                key: redis-password
+        ports:
+          - name: nodejs
+            containerPort: 3000
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+          - name: monasca-grafana-persistent-storage
+            mountPath: /var/lib/grafana
+            readOnly: false
+          - mountPath: /monasca-content
+            name: monasca-content
+          - mountPath: /container.init
+            name: monasca-bin
+          - mountPath: /grafana-etc
+            name: grafana-etc
+          - mountPath: /openstack-kube
+            name: openstack-kube
+
+#      volumes:
+#      - name: redis-data
+#      {{- if .Values.persistence.enabled }}
+#        persistentVolumeClaim:
+#          claimName: {{ template "fullname" . }}
+#      {{- else }}
+#        emptyDir: {}
+#      {{- end -}}

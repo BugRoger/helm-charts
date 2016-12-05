@@ -1,0 +1,36 @@
+# Default values for grafana.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  repository: hub.global.cloud.sap/monsoon/monasca-grafana
+  tag: 4.0.0-beta2-sap
+  pullPolicy: IfNotPresent
+service:
+  name: monasca-grafana
+  type: ClusterIP
+#  externalPort: 3000
+  internalPort: 3000
+#resources:
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+monasca:
+  grafana:
+    port.public: '3000'
+    endpoint.host.public: grafana.staging.cloud.sap
+  # load grafana dashboards and datasources from monasca-content on deployment and maybe wipe the old ones beforehand
+    load.datasources: 'False'
+    wipe.datasources: 'False'
+    load.dashboards: 'False'
+    wipe.dashboards: 'False'
+    local.user: 'local'
+    viewer.role: 'monasca-viewer'
+    admin.role: 'monasca-user'
+
+# grafana config settings - names required in this way, so that grafana can use the env variable right away
+gf:
+  security.admin.user: grafana_admin
