@@ -6,6 +6,10 @@ image:
   repository: hub.global.cloud.sap/monsoon/monasca-grafana
   tag: 4.0.0-beta2-sap
   pullPolicy: IfNotPresent
+  version:
+    monasca:
+      grafana: "20161205.1"
+namespace: "darren"
 service:
   name: monasca-grafana
   type: ClusterIP
@@ -18,10 +22,19 @@ service:
 #  requests:
 #    cpu: 100m
 #    memory: 128Mi
+persistence:
+  enabled: False
+service:
+  externalPort: 3000
 monasca:
   grafana:
-    port.public: '3000'
-    endpoint.host.public: grafana.staging.cloud.sap
+    port:
+      public: '3000'
+    endpoint:
+      port:
+        public: '3000'
+      host:
+        public: grafana.staging.cloud.sap
   # load grafana dashboards and datasources from monasca-content on deployment and maybe wipe the old ones beforehand
     load.datasources: 'False'
     wipe.datasources: 'False'

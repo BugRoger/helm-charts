@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
 #  name: {{ template "fullname" . }}
   name: monasca-grafana
-  namespace: monasca
+  namespace: "{{ .Values.namespace }}"
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -11,8 +11,6 @@ metadata:
     heritage: "{{ .Release.Service }}"
     system: openstack
     service: monitoring
-#  annotations:
-#    kubernetes.io/change-cause: {{cluster_config['cluster.deployment.reason']}}
 spec:
   replicas: 1
   strategy:
@@ -25,9 +23,6 @@ spec:
       labels:
         app: {{ template "fullname" . }}
         component: monasca-grafana
-      annotations:
-        checksum/grafana.etc: {{ include "grafana/templates/grafana-etc-configmap.yaml" . | sha256sum }}
-        checksum/monasca.bin: {{ include "grafana/templates/monasca-bin-configmap.yaml" . | sha256sum }}
     spec:
       nodeSelector:
         zone: farm
@@ -35,10 +30,10 @@ spec:
         - name: monasca-grafana-persistent-storage
           persistentVolumeClaim:
             claimName: monasca-grafana-pvclaim
-#        - name: openstack-kube
-#          gitRepo:
-#            repository: {{cluster_config['cluster.configuration.repository']}}
-#            revision: {{cluster_config['cluster.configuration.revision']}}
+        - name: openstack-kube
+          gitRepo:
+            repository: https://github.com/sapcc/openstack-kube
+            revision: master
         - name: monasca-content
           gitRepo:
             repository: https://github.wdf.sap.corp/monsoon/monasca-content
@@ -54,7 +49,7 @@ spec:
 #        image: "{{ .Values.image }}"
 #        imagePullPolicy: {{ default "" .Values.imagePullPolicy | quote }}
       - name: monasca-grafana
-        image: hub.global.cloud.sap/monsoon/monasca-grafana:{{cluster_config['image.version.monasca.grafana']}}
+        image: hub.global.cloud.sap/monsoon/monasca-grafana:{{.Values.image.version.monasca.grafana}}
         imagePullPolicy: Always
         command:
           - /openstack-kube/openstack-kube/scripts/_container_init
@@ -98,8 +93,8 @@ spec:
             name: monasca-bin
           - mountPath: /grafana-etc
             name: grafana-etc
-          - mountPath: /openstack-kube
-            name: openstack-kube
+#          - mountPath: /openstack-kube
+#            name: openstack-kube
 
 #      volumes:
 #      - name: redis-data

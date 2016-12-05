@@ -3,17 +3,17 @@ kind: Ingress
 
 metadata:
   name: monasca-grafana
-  namespace: monasca
+  namespace: "{{ .Values.namespace }}"
 
 spec:
   tls:
-     - secretName: tls-{{cluster_config['monasca.grafana.endpoint.host.public'].replace(".","-")}}
-       hosts: [{{cluster_config['monasca.grafana.endpoint.host.public']}}]
+     - secretName: tls-{{.Values.monasca.grafana.endpoint.host.public | replace "." "-"}}
+       hosts: [{{.Values.monasca.grafana.endpoint.host.public}}]
   rules:
-    - host: {{cluster_config['monasca.grafana.endpoint.host.public']}}
+    - host: {{.Values.monasca.grafana.endpoint.host.public}}
       http:
         paths:
         - path: /
           backend:
             serviceName: monasca-grafana
-            servicePort: {{cluster_config['monasca.grafana.port.public']}}
+            servicePort: {{.Values.monasca.grafana.endpoint.port.public}}
